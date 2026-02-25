@@ -1550,6 +1550,7 @@ def _render_sidebar_agent() -> None:
     _init_session()
     ui = get_ui(_get_lang())
     with st.sidebar:
+        st.markdown("**[ AUTHENTICATION: GLOBAL ]**")
         # Sidebar Console: Language Selection at absolute top (first element operator sees)
         with st.container():
             st.markdown(
@@ -1573,6 +1574,10 @@ def _render_sidebar_agent() -> None:
                 st.session_state.lang = new_lang
                 st.session_state.language = new_lang
                 st.rerun()
+        st.markdown(
+            '<p class="tactical-status" style="font-size:0.7rem;">[ CALIBRATION_SEQ: 30_UNITS_ACTIVE ]</p>',
+            unsafe_allow_html=True,
+        )
         st.markdown("---")
         if st.button(ui.get("nav_mission_hub", "Mission Hub"), key="nav_mission_hub_btn"):
             st.session_state.nav_page = "mission_hub"
