@@ -69,11 +69,11 @@ def _inject_global_hud_css() -> None:
     * { font-family: "Share Tech Mono", "JetBrains Mono", monospace !important; }
     html, body, [data-testid="stAppViewContainer"], .stApp,
     [data-testid="stHeader"], [data-testid="stToolbar"] {
-        background-color: #000000 !important;
+        background-color: #05070a !important;
         color: #ffffff !important;
     }
     [data-testid="stSidebar"] {
-        background: #000000 !important;
+        background: #05070a !important;
         border-right: 1px solid rgba(0, 246, 255, 0.25);
     }
     /* Zero-Box Global: strip Streamlit background boxes and borders so cards float on #05070a */
@@ -90,20 +90,16 @@ def _inject_global_hud_css() -> None:
     svg[data-testid="baseIcon-keyboardDoubleArrowRight"] { display: none !important; }
     [data-testid="stSidebar"] .stMarkdown { font-family: "Share Tech Mono", "JetBrains Mono", monospace !important; }
 
-    /* Glitch / chromatic aberration: white + cyan + magenta offsets */
-    @keyframes cyber-glow {
-        0%, 100% { color: #00f6ff; text-shadow: 2px 0 #00f6ff, -2px 0 #ff00ff, 0 0 0.1em #fff, 0 0 0.35em #00f6ff; }
-        50% { color: #00b8c4; text-shadow: 2px 0 #00b8c4, -2px 0 #ff00ff, 0 0 0.1em #fff, 0 0 0.2em #00b8c4; }
-    }
+    /* Headline: sleek tactical — Pure White, 1.0rem, left-aligned, no glow/neon */
     .c3s-main-title {
-        font-size: 1.8rem;
+        font-size: 1.0rem;
         letter-spacing: 0.12em;
         font-weight: 700;
-        color: #00f6ff;
+        color: #FFFFFF;
         margin: 0 0 0.15rem 0;
-        text-shadow: 2px 0 #00f6ff, -2px 0 #ff00ff, 0 0 0.1em #fff;
+        text-shadow: none;
+        text-align: left;
         font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
-        animation: cyber-glow 2.8s ease-in-out infinite;
     }
     .c3s-subtitle {
         font-size: 1.35rem;
@@ -243,10 +239,24 @@ def _inject_global_hud_css() -> None:
         border-color: #00f6ff;
     }
     .ares-radar-well { background: transparent !important; border: none !important; }
+    /* Live Biometric radar: green pulsing overlay (#00FF00), 2s breathing 0.2–0.5 opacity */
     [data-testid="stSidebar"] [data-testid="stPlotlyChart"] {
+        position: relative !important;
         border: none !important;
         box-shadow: 0 0 0 2px #00FF00;
         animation: ares-radar-pulse 2s ease-in-out infinite;
+    }
+    [data-testid="stSidebar"] [data-testid="stPlotlyChart"]::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center, #00FF00 0%, transparent 70%);
+        pointer-events: none;
+        animation: ares-radar-overlay-pulse 2s ease-in-out infinite;
+    }
+    @keyframes ares-radar-overlay-pulse {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 0.5; }
     }
     @keyframes ares-radar-pulse {
         0%, 100% { box-shadow: 0 0 0 2px #00FF00, 0 0 12px rgba(0, 255, 0, 0.4); }
