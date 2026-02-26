@@ -46,71 +46,104 @@ NICE_CATEGORY_LABELS = [
     "Securely Provision",
 ]
 
+# Radar: 8 axes (top clockwise) — clone colors and placement from reference
+RADAR_8_LABELS = [
+    "Analyze",
+    "Protect & Defend",
+    "Securely Provision",
+    "Oversee & Govern",
+    "Operate & Maintain",
+    "Investigate",
+    "Govern",
+    "Collect & Operate",
+]
+RADAR_8_NICE_MAP = [CATEGORY_AN, CATEGORY_PR, CATEGORY_SP, CATEGORY_OV, CATEGORY_OM, CATEGORY_IN, CATEGORY_OV, CATEGORY_CO]
+# Target Readiness (Project A) — from reference: 75, 78, 65, 70, 55, 50, 70, 75
+TARGET_READINESS_VALUES = [75, 78, 65, 70, 55, 50, 70, 75]
+# Exact colors from reference (clone identically)
+RADAR_CYAN = "#61D9EE"   # light blue-green/cyan: grid, axis labels, "You" series
+RADAR_GREEN = "#7CEB8D"  # vibrant lime green: "Target Readiness (Project A)" dashed line
+
 
 def build_ares_radar_figure(category_scores: Dict[str, float]):
     """
-    Ares Live Biometric Radar: 7 axes in NIST NICE order.
-    Deep-space background (#05070a); cyan labels and fill.
+    Radar clone: 8 axes, dark background. #61D9EE light blue-green (grid + "You"), #7CEB8D lime green ("Target Readiness" dashed). Scale 0–100 in white.
     """
     try:
         import plotly.graph_objects as go
     except Exception as exc:  # pragma: no cover
         raise RuntimeError("Plotly is required to render the Ares radar.") from exc
 
-    # Strict NIST NICE framework order (7 categories)
-    values = [max(0.0, min(100.0, float(category_scores.get(code, 0.0)))) for code in NICE_CATEGORY_ORDER]
-    m = max(values) if values else 0.0
+    # "You" — 8 values from 7 NICE scores (Govern = OV repeated)
+    you_values = [
+        max(0.0, min(100.0, float(category_scores.get(code, 0.0))))
+        for code in RADAR_8_NICE_MAP
+    ]
+    m = max(you_values) if you_values else 0.0
     if m < 1.0 and m >= 0:
-        values = [max(10.0, v * 100.0) if v > 0 else 10.0 for v in values]
-    values_loop = values + [values[0]]
-    labels_loop = NICE_CATEGORY_LABELS + [NICE_CATEGORY_LABELS[0]]
+        you_values = [max(10.0, v * 100.0) if v > 0 else 10.0 for v in you_values]
+    you_loop = you_values + [you_values[0]]
+    target_loop = TARGET_READINESS_VALUES + [TARGET_READINESS_VALUES[0]]
+    labels_loop = RADAR_8_LABELS + [RADAR_8_LABELS[0]]
 
     fig = go.Figure(
         data=[
             go.Scatterpolar(
-                r=values_loop,
-                theta=labels_loop,
-                fill="toself",
-                showlegend=False,
-                line=dict(color="rgba(0, 246, 255, 0.35)", width=5),
-                fillcolor="rgba(0, 246, 255, 0.08)",
-            ),
-            go.Scatterpolar(
-                r=values_loop,
+                r=you_loop,
                 theta=labels_loop,
                 fill="toself",
                 name="You",
-                line=dict(color="#00f6ff", width=2),
-                fillcolor="rgba(0, 246, 255, 0.15)",
+                line=dict(color=RADAR_CYAN, width=2),
+                fillcolor="rgba(97, 217, 238, 0.12)",
+                marker=dict(size=7, color=RADAR_CYAN, symbol="circle", line=dict(width=0)),
+            ),
+            go.Scatterpolar(
+                r=target_loop,
+                theta=labels_loop,
+                fill="toself",
+                name="Target Readiness (Project A)",
+                line=dict(color=RADAR_GREEN, width=2.5, dash="dash"),
+                fillcolor="rgba(124, 235, 141, 0.06)",
+                marker=dict(size=7, color=RADAR_GREEN, symbol="circle", line=dict(width=0)),
             ),
         ]
     )
 
     fig.update_layout(
         polar=dict(
-            bgcolor="#05070a",
+            bgcolor="#1a1a1a",
             radialaxis=dict(
                 visible=True,
                 range=[0, 100],
-                tickfont=dict(color="#00f6ff", size=11, family="'Share Tech Mono', 'JetBrains Mono', monospace"),
-                gridcolor="rgba(0, 246, 255, 0.2)",
-                linecolor="rgba(0, 246, 255, 0.4)",
+                tickvals=[0, 20, 40, 60, 80, 100],
+                tickfont=dict(color="#ffffff", size=11, family="'Share Tech Mono', 'JetBrains Mono', monospace"),
+                gridcolor=RADAR_CYAN,
+                linecolor=RADAR_CYAN,
                 showgrid=True,
+                dtick=20,
             ),
             angularaxis=dict(
-                tickfont=dict(color="#00f6ff", size=11, family="'Share Tech Mono', 'JetBrains Mono', monospace"),
-                gridcolor="rgba(0, 246, 255, 0.15)",
-                linecolor="rgba(0, 246, 255, 0.35)",
+                tickfont=dict(color=RADAR_CYAN, size=10, family="'Share Tech Mono', 'JetBrains Mono', monospace"),
+                gridcolor=RADAR_CYAN,
+                linecolor=RADAR_CYAN,
                 showgrid=True,
             ),
         ),
-        paper_bgcolor="#05070a",
-        plot_bgcolor="#05070a",
+        paper_bgcolor="#1a1a1a",
+        plot_bgcolor="#1a1a1a",
         showlegend=True,
-        legend=dict(font=dict(family="'Share Tech Mono', monospace", color="#00f6ff", size=10), orientation="h", y=1.02),
-        margin=dict(t=0, b=0, l=0, r=0),
+        legend=dict(
+            x=0.02,
+            y=0.98,
+            xanchor="left",
+            yanchor="top",
+            font=dict(family="'Share Tech Mono', monospace", color=RADAR_CYAN, size=10),
+            bgcolor="rgba(0,0,0,0)",
+            bordercolor="rgba(0,0,0,0)",
+        ),
+        margin=dict(t=40, b=40, l=40, r=40),
         height=420,
-        font=dict(family="'Share Tech Mono', monospace", color="#00f6ff"),
+        font=dict(family="'Share Tech Mono', monospace", color="#ffffff"),
     )
     return fig
 

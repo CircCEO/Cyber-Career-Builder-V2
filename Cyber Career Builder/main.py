@@ -62,46 +62,70 @@ def _inject_global_hud_css() -> None:
         initial_sidebar_state="expanded",
     )
 
-    css = """
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-    /* 1. Environmental HUD: #05070a background; Share Tech Mono for all tactical text */
+    css = """<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* 1. Environmental HUD */
     :root { --ares-neon: #00f6ff; }
     * { font-family: "Share Tech Mono", "JetBrains Mono", monospace !important; }
     html, body, [data-testid="stAppViewContainer"], .stApp,
     [data-testid="stHeader"], [data-testid="stToolbar"] {
-        background-color: #05070a !important;
+        background-color: #000000 !important;
         color: #ffffff !important;
     }
     [data-testid="stSidebar"] {
-        background: #05070a !important;
+        background: #000000 !important;
         border-right: 1px solid rgba(0, 246, 255, 0.25);
     }
-    /* Zero-Box: strip decorative borders/backgrounds; keep structural containers for stability */
-    [data-testid="stVerticalBlock"], [data-testid="column"] {
+    /* Zero-Box Global: strip Streamlit background boxes and borders so cards float on #05070a */
+    [data-testid="stVerticalBlock"], [data-testid="column"], [data-testid="stHorizontalBlock"],
+    .stContainer, [class*="st-emotion-cache"] {
         background: none !important;
         border: none !important;
         box-shadow: none !important;
     }
-    .block-container { max-width: 1300px; padding-top: 1rem; padding-bottom: 1rem; }
+    .block-container { max-width: 1300px; padding-top: 1rem; padding-bottom: 1rem; background: none !important; border: none !important; }
     [data-testid="stHeader"] { border-bottom: none !important; }
     [data-testid="stToolbar"] { visibility: hidden !important; }
     button[title="Collapse sidebar"], button[title="Expand sidebar"],
     svg[data-testid="baseIcon-keyboardDoubleArrowRight"] { display: none !important; }
     [data-testid="stSidebar"] .stMarkdown { font-family: "Share Tech Mono", "JetBrains Mono", monospace !important; }
 
-    .hud-mono { letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.7rem; color: #00f6ff; }
-    .c3s-main-title { font-size: 1.5rem; letter-spacing: 0.12em; color: #00f6ff; margin-bottom: 0.25rem; }
-    .c3s-subtitle { font-size: 1.35rem; letter-spacing: 0.18em; text-transform: uppercase; color: #00f6ff; margin-bottom: 1.5rem; }
+    /* Glitch / chromatic aberration: white + cyan + magenta offsets */
+    @keyframes cyber-glow {
+        0%, 100% { color: #00f6ff; text-shadow: 2px 0 #00f6ff, -2px 0 #ff00ff, 0 0 0.1em #fff, 0 0 0.35em #00f6ff; }
+        50% { color: #00b8c4; text-shadow: 2px 0 #00b8c4, -2px 0 #ff00ff, 0 0 0.1em #fff, 0 0 0.2em #00b8c4; }
+    }
+    .c3s-main-title {
+        font-size: 1.8rem;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        color: #00f6ff;
+        margin: 0 0 0.15rem 0;
+        text-shadow: 2px 0 #00f6ff, -2px 0 #ff00ff, 0 0 0.1em #fff;
+        font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
+        animation: cyber-glow 2.8s ease-in-out infinite;
+    }
+    .c3s-subtitle {
+        font-size: 1.35rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 1rem 0;
+        text-shadow: 1px 0 #00f6ff, -1px 0 #ff00ff;
+        font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
+    }
+    .connecting-status { position: absolute; top: 0; right: 0; font-size: 0.7rem; letter-spacing: 0.2em; color: #00f6ff; }
 
-    /* 2. Fixed-Height Tactical Modules: 450px; flex column space-between; only asymmetric cyan brackets */
+    /* World Class 16:30 — Fixed Geometry Lock: mission cards 480px; Zero-Box diegetic framing */
     .mission-card {
         position: relative;
-        height: 450px;
+        min-height: 480px !important;
+        height: 480px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        background: none !important;
+        background: transparent !important;
         border: none !important;
         box-shadow: none !important;
         padding: 1.5rem 1.75rem 1.75rem 2rem;
@@ -118,7 +142,20 @@ def _inject_global_hud_css() -> None:
     }
     .mission-card .corner-tl { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
     .mission-card .corner-br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
-    /* 3. Metadata Hierarchy: status green, TRK_LOCK/hex white, titles larger bold white */
+    /* Diegetic: ONLY asymmetric cyan brackets (#00f6ff) tl+br; Zero-Box: no background, border, shadow */
+    /* Hex anchor: 0.6 opacity cyan in top-left bracket of each card (e.g. 0xE04D, 0x7F2A, 0x8B3C) */
+    .mission-hex-tl {
+        position: absolute;
+        top: 4px;
+        left: 6px;
+        font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #00f6ff;
+        opacity: 0.6;
+        letter-spacing: 0.08em;
+    }
+    /* Metadata: SYSTEM STATUS Tactical Green #00FF00; TRK_LOCK + hex Pure White #FFFFFF */
     .mission-status {
         font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
         font-weight: 700;
@@ -129,22 +166,25 @@ def _inject_global_hud_css() -> None:
         margin-bottom: 0.5rem;
         padding-top: 1.25rem;
     }
+    /* Typography: Larger Bold White mission titles (Clone.jpg reference) */
     .mission-title {
         font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
         font-weight: 700;
-        font-size: 1.2rem;
+        font-size: 1.35rem;
         letter-spacing: 0.08em;
         color: #FFFFFF;
     }
     .mission-metadata {
         font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
+        font-weight: 700;
         font-size: 0.65rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: rgba(0, 246, 255, 0.9);
+        color: #FFFFFF;
     }
     .mission-directive {
         font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
+        font-weight: 700;
         font-size: 0.85rem;
         line-height: 1.5;
         color: rgba(255,255,255,0.85);
@@ -152,17 +192,19 @@ def _inject_global_hud_css() -> None:
     }
     .mission-footnote {
         font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
+        font-weight: 700;
         font-size: 0.65rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: #FFFFFF;
         margin-top: auto;
     }
+    /* Forced Geometry: column 540px so 480px card + [ ENGAGE ] align on one horizontal line */
     [data-testid="column"] {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-height: 480px;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        min-height: 540px !important;
     }
     [data-testid="column"] .stButton { margin-top: auto; padding-top: 1rem; display: flex; justify-content: center; }
     .stButton > button {
@@ -171,7 +213,7 @@ def _inject_global_hud_css() -> None:
         align-items: center;
         justify-content: center;
         padding: 0.5rem 1.75rem;
-        border: none;
+        border: 1px solid #00f6ff;
         border-radius: 0;
         background: transparent;
         cursor: pointer;
@@ -182,26 +224,10 @@ def _inject_global_hud_css() -> None:
         color: #ffffff;
         transition: box-shadow 0.18s, transform 0.18s;
     }
-    .stButton > button::before {
-        content: "";
-        position: absolute;
-        left: 0; top: 0;
-        width: 14px; height: 14px;
-        border-left: 2px solid #00f6ff;
-        border-top: 2px solid #00f6ff;
-    }
-    .stButton > button::after {
-        content: "";
-        position: absolute;
-        right: 0; bottom: 0;
-        width: 14px; height: 14px;
-        border-right: 2px solid #00f6ff;
-        border-bottom: 2px solid #00f6ff;
-    }
     .stButton > button:hover, .stButton > button:focus-visible {
         outline: none;
         transform: translateY(-1px);
-        box-shadow: 0 0 18px rgba(0, 246, 255, 0.5);
+        box-shadow: 0 0 12px rgba(0, 246, 255, 0.5);
     }
     /* 4. Sidebar: 8-block Neural-Link with #00f6ff neon-glow; Green Pulse on radar container */
     .ares-neural-row { display: flex; gap: 4px; margin: 0.5rem 0 0.75rem 0; flex-wrap: wrap; }
@@ -226,7 +252,26 @@ def _inject_global_hud_css() -> None:
         0%, 100% { box-shadow: 0 0 0 2px #00FF00, 0 0 12px rgba(0, 255, 0, 0.4); }
         50% { box-shadow: 0 0 0 3px #00FF00, 0 0 20px rgba(0, 255, 0, 0.7); }
     }
-    /* 5. Navigation Integrity: active item wrapped in [ ] with cyan glow */
+    /* Sidebar nav: asymmetric cyan brackets (#00f6ff) tl+br + padlock per item */
+    .hud-mono { letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.7rem; color: #00f6ff; }
+    .ares-nav-block {
+        position: relative;
+        display: block;
+        padding: 0.5rem 0.5rem 0.5rem 1rem;
+        margin-bottom: 0.35rem;
+        font-family: "Share Tech Mono", "JetBrains Mono", monospace !important;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.9);
+    }
+    .ares-nav-block .nav-corner { position: absolute; width: 12px; height: 12px; border-color: #00f6ff; border-style: solid; border-width: 0; pointer-events: none; }
+    .ares-nav-block .nav-corner-tl { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+    .ares-nav-block .nav-corner-br { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+    .ares-nav-block .nav-lock { margin-right: 0.35rem; opacity: 0.9; }
+    .ares-nav-block.active { color: #00f6ff; }
+    .ares-nav-block.active::before { content: "[ "; color: #00f6ff; }
+    .ares-nav-block.active::after { content: " ]"; color: #00f6ff; }
     .ares-nav-item {
         display: block;
         padding: 0.4rem 0;
@@ -248,9 +293,14 @@ def _inject_global_hud_css() -> None:
     }
     .ares-nav-item.active::before { content: "[ "; color: #00f6ff; }
     .ares-nav-item.active::after { content: " ]"; color: #00f6ff; }
+    .skill-heatmap-label { font-size: 0.65rem; letter-spacing: 0.15em; color: #00f6ff; margin-top: 1rem; margin-bottom: 0.35rem; text-transform: uppercase; }
     </style>
     """
-    st.markdown(textwrap.dedent(css), unsafe_allow_html=True)
+    # Inject CSS as raw HTML so it is applied, not displayed as text (st.markdown can render <style> content as code)
+    try:
+        st.html(css)
+    except AttributeError:
+        st.markdown(textwrap.dedent(css), unsafe_allow_html=True)
 
 
 def _render_sidebar() -> None:
@@ -266,37 +316,41 @@ def _render_sidebar() -> None:
     archetype_active = page == "dossier"
 
     with st.sidebar:
-        st.markdown('<div class="hud-mono" style="margin-bottom:0.5rem;">STRAT-COM</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hud-mono" style="margin-bottom:0.4rem;">STRAT-COM</div>', unsafe_allow_html=True)
         st.markdown(
-            f'<div class="ares-nav-item{" active" if mission_hub_active else ""}">Mission Hub</div>',
+            f'<div class="ares-nav-block{" active" if mission_hub_active else ""}">'
+            '<span class="nav-corner nav-corner-tl"></span><span class="nav-corner nav-corner-br"></span>'
+            '<span class="nav-lock" aria-hidden="true">&#128274;</span>Mission Hub</div>',
             unsafe_allow_html=True,
         )
         st.markdown(
-            f'<div class="ares-nav-item{" active" if proving_active else ""}">Proving Grounds</div>',
+            f'<div class="ares-nav-block{" active" if proving_active else ""}">'
+            '<span class="nav-corner nav-corner-tl"></span><span class="nav-corner nav-corner-br"></span>'
+            '<span class="nav-lock" aria-hidden="true">&#128274;</span>Proving Grounds</div>',
             unsafe_allow_html=True,
         )
         st.markdown(
-            f'<div class="ares-nav-item{" active" if archetype_active else ""}">Cyber Archetype</div>',
+            f'<div class="ares-nav-block{" active" if archetype_active else ""}">'
+            '<span class="nav-corner nav-corner-tl"></span><span class="nav-corner nav-corner-br"></span>'
+            '<span class="nav-lock" aria-hidden="true">&#128274;</span>Cyber Archetype</div>',
             unsafe_allow_html=True,
         )
-        st.markdown('<div class="hud-mono" style="margin-top:0.5rem;font-size:0.6rem;">LIVE-FIRE // RANGE</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hud-mono" style="margin-top:0.25rem;font-size:0.6rem;">SYNC_LEVEL // %</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hud-mono" style="margin-top:0.5rem;font-size:0.6rem;">LIVE-FIRE // RANGE // PERS-INTEL</div>', unsafe_allow_html=True)
         st.selectbox("Language", ["English"], key="lang")
         st.markdown("---")
 
         st.markdown('<div class="hud-mono">[ NEURAL-LINK ]</div>', unsafe_allow_html=True)
-        st.markdown('<div class="hud-mono" style="font-size:0.6rem;margin-top:0.15rem;">OPERATOR_ID: [ GUARDIAN ]</div>', unsafe_allow_html=True)
-        st.markdown('<div class="hud-mono" style="margin-top:0.75rem;">SYNC_LEVEL // %%</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hud-mono" style="font-size:0.6rem;margin-top:0.15rem;">OPERATOR ID: [ GUARDIAN ]</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hud-mono" style="margin-top:0.5rem;">SYNC_LEVEL // %</div>', unsafe_allow_html=True)
         cells_html = "".join(
             f'<div class="ares-neural-cell{" lit" if i < num_lit else ""}"></div>' for i in range(8)
         )
         st.markdown(f'<div class="ares-neural-row">{cells_html}</div>', unsafe_allow_html=True)
         st.caption(f"Progress: {current_idx}/{total} answered")
-        st.caption("SYNC_LEVEL // %%")
+        st.caption("SYNC_LEVEL // %")
 
-        st.markdown(
-            '<div class="hud-mono" style="margin-top:1rem;">Live Biometric</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown('<div class="hud-mono" style="margin-top:1rem;">Live Biometric</div>', unsafe_allow_html=True)
         st.markdown('<div class="ares-radar-well">', unsafe_allow_html=True)
         radar_scores = score_state.get_normalized_radar_scores()
         fig = build_ares_radar_figure(radar_scores)
@@ -306,6 +360,9 @@ def _render_sidebar() -> None:
             config=dict(displayModeBar=False),
         )
         st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="skill-heatmap-label">Skill Heatmap</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hud-mono" style="font-size:0.6rem;">Securely Provision</div>', unsafe_allow_html=True)
 
 
 def _start_mission(mission: str) -> None:
@@ -327,13 +384,13 @@ def _start_mission(mission: str) -> None:
 
 
 def _render_mission_hub() -> None:
-    """Circadence C3S — Project Ares Tactical Mission Hub (Clone-style)."""
+    """Circadence C3S — Project Ares Tactical Mission Hub (carbon copy of reference)."""
     st.markdown(
-        '<h1 class="c3s-main-title">Circadence Cyber Career Simulator (C3S)</h1>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<p class="c3s-subtitle">Project Ares Tactical Mission Hub</p>',
+        '<div style="position:relative; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;">'
+        '<div><h1 class="c3s-main-title">Circadence Cyber Career Simulator (C3S)</h1>'
+        '<p class="c3s-subtitle">Project Ares Tactical Mission Hub</p></div>'
+        '<span class="connecting-status">••• CONNECTING</span>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
@@ -346,14 +403,12 @@ def _render_mission_hub() -> None:
             <div class="mission-card">
                 <span class="corner-bracket corner-tl"></span>
                 <span class="corner-bracket corner-br"></span>
+                <span class="mission-hex-tl">0x7F2A</span>
                 <div class="mission-status">SYSTEM STATUS: NOMINAL</div>
                 <div class="mission-title">The Explorer (Foundational)</div>
-                <div class="mission-metadata">
-                    VECTOR_ID: EXP-20 // THREAT_MODEL: 2026_STANDARD
-                </div>
-                <div class="mission-directive">
-                    20-item profile: 10 Instinct + 10 NIST Foundations. Assess foundational alignment with NICE work roles.
-                </div>
+                <div class="mission-metadata">VECTOR_ID: EXP-28</div>
+                <div class="mission-metadata">THREAT_MODEL: 2026_STANDARD</div>
+                <div class="mission-directive">Operational Directive: Assess foundational alignment with NICE work roles. 20-item profile.</div>
                 <div class="mission-footnote">TRK_LOCK // 0x7F2A</div>
             </div>
             """,
@@ -369,16 +424,13 @@ def _render_mission_hub() -> None:
             <div class="mission-card">
                 <span class="corner-bracket corner-tl"></span>
                 <span class="corner-bracket corner-br"></span>
+                <span class="mission-hex-tl">0x83C1</span>
                 <div class="mission-status">SYSTEM STATUS: NOMINAL</div>
                 <div class="mission-title">The Specialist (Elite)</div>
-                <div class="mission-metadata">
-                    VECTOR_ID: TKS-50 // THREAT_MODEL: 2026_STANDARD
-                </div>
-                <div class="mission-directive">
-                    Full TKS assessment against the NIST 2026 framework with a
-                    50-item gap analysis across task, knowledge, and skill domains.
-                </div>
-                <div class="mission-footnote">TRK_LOCK // 0x8B3C</div>
+                <div class="mission-metadata">VECTOR_ID: TRS-58</div>
+                <div class="mission-metadata">THREAT_MODEL: 2026_STANDARD</div>
+                <div class="mission-directive">Operational Directive: Full TKS assessment against NIST 2026 framework. 50-item gap analysis.</div>
+                <div class="mission-footnote">TRK_LOCK // 0x83C1</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -393,15 +445,12 @@ def _render_mission_hub() -> None:
             <div class="mission-card">
                 <span class="corner-bracket corner-tl"></span>
                 <span class="corner-bracket corner-br"></span>
+                <span class="mission-hex-tl">0xEB4D</span>
                 <div class="mission-status">SYSTEM STATUS: NOMINAL</div>
                 <div class="mission-title">The Operator (Tier 1)</div>
-                <div class="mission-metadata">
-                    VECTOR_ID: OP-12 // THREAT_MODEL: 2026_STANDARD
-                </div>
-                <div class="mission-directive">
-                    Assess readiness for Critical Infrastructure Protection across
-                    ICS/SCADA and ransomware mitigation mission scenarios.
-                </div>
+                <div class="mission-metadata">VECTOR_ID: OP-12</div>
+                <div class="mission-metadata">THREAT_MODEL: 2026_STANDARD</div>
+                <div class="mission-directive">Operational Directive: Assess readiness for Critical Infrastructure Protection (ICS/SCADA) and Ransomware Mitigation. 12 missions aligned to Project Ares Advanced Learning Paths.</div>
                 <div class="mission-footnote">TRK_LOCK // 0xE04D</div>
             </div>
             """,

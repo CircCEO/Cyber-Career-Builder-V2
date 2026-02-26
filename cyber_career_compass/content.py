@@ -4,7 +4,17 @@ Aligned to NIST NICE Task/Knowledge/Skill statements. Used by Proving Grounds an
 """
 
 import random
+import sys
+from pathlib import Path
 from typing import Dict, List, Optional, Any
+
+# Questions module moved to workspace root (Cyber Career Builder)
+_here = Path(__file__).resolve().parent
+_root = _here.parent
+_cc_root = _root / "Cyber Career Builder"
+if _cc_root.exists() and str(_cc_root) not in sys.path:
+    sys.path.insert(0, str(_cc_root))
+from questions import Question, Choice, get_explorer_instinct_questions, get_technical_questions
 
 from .nice_framework import (
     CATEGORY_SP,
@@ -15,7 +25,6 @@ from .nice_framework import (
     CATEGORY_OM,
     CATEGORY_OV,
 )
-from .questions import Question, Choice, get_explorer_instinct_questions, get_technical_questions
 
 
 def _w(*pairs: Any) -> Dict[str, float]:
