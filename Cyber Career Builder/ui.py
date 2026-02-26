@@ -13,7 +13,7 @@ from typing import Dict, List
 from rich.console import Console
 from rich.text import Text
 
-from nice_framework import (
+from cyber_career_compass.nice_framework import (
     CATEGORY_AN,
     CATEGORY_CO,
     CATEGORY_IN,
@@ -49,53 +49,68 @@ NICE_CATEGORY_LABELS = [
 
 def build_ares_radar_figure(category_scores: Dict[str, float]):
     """
-    Build a 7-axis Plotly radar using the NIST NICE categories in fixed order:
-    Analyze, Collect & Operate, Investigate, Operate & Maintain,
-    Oversee & Govern, Protect & Defend, Securely Provision.
+    Ares Live Biometric Radar: 7 axes in NIST NICE order.
+    Deep-space background (#05070a); cyan labels and fill.
     """
     try:
         import plotly.graph_objects as go
     except Exception as exc:  # pragma: no cover
         raise RuntimeError("Plotly is required to render the Ares radar.") from exc
 
+    # Strict NIST NICE framework order (7 categories)
     values = [max(0.0, min(100.0, float(category_scores.get(code, 0.0)))) for code in NICE_CATEGORY_ORDER]
+    m = max(values) if values else 0.0
+    if m < 1.0 and m >= 0:
+        values = [max(10.0, v * 100.0) if v > 0 else 10.0 for v in values]
     values_loop = values + [values[0]]
     labels_loop = NICE_CATEGORY_LABELS + [NICE_CATEGORY_LABELS[0]]
 
     fig = go.Figure(
-        data=go.Scatterpolar(
-            r=values_loop,
-            theta=labels_loop,
-            fill="toself",
-            line=dict(color="#00f2ff", width=2),
-            fillcolor="rgba(0, 242, 255, 0.15)",  # 15% Neon-Cyan opacity
-        )
+        data=[
+            go.Scatterpolar(
+                r=values_loop,
+                theta=labels_loop,
+                fill="toself",
+                showlegend=False,
+                line=dict(color="rgba(0, 246, 255, 0.35)", width=5),
+                fillcolor="rgba(0, 246, 255, 0.08)",
+            ),
+            go.Scatterpolar(
+                r=values_loop,
+                theta=labels_loop,
+                fill="toself",
+                name="You",
+                line=dict(color="#00f6ff", width=2),
+                fillcolor="rgba(0, 246, 255, 0.15)",
+            ),
+        ]
     )
 
     fig.update_layout(
         polar=dict(
-            bgcolor="#0a0a0b",
+            bgcolor="#05070a",
             radialaxis=dict(
                 visible=True,
                 range=[0, 100],
-                tickfont=dict(color="#00FF00", size=11, family="'Share Tech Mono', monospace"),
-                gridcolor="#333333",
-                linecolor="#333333",
+                tickfont=dict(color="#00f6ff", size=11, family="'Share Tech Mono', 'JetBrains Mono', monospace"),
+                gridcolor="rgba(0, 246, 255, 0.2)",
+                linecolor="rgba(0, 246, 255, 0.4)",
                 showgrid=True,
             ),
             angularaxis=dict(
-                tickfont=dict(color="#00FF00", size=11, family="'Share Tech Mono', monospace"),
-                gridcolor="#333333",
-                linecolor="#333333",
+                tickfont=dict(color="#00f6ff", size=11, family="'Share Tech Mono', 'JetBrains Mono', monospace"),
+                gridcolor="rgba(0, 246, 255, 0.15)",
+                linecolor="rgba(0, 246, 255, 0.35)",
                 showgrid=True,
             ),
         ),
-        paper_bgcolor="#0a0a0b",
-        plot_bgcolor="#0a0a0b",
-        showlegend=False,
+        paper_bgcolor="#05070a",
+        plot_bgcolor="#05070a",
+        showlegend=True,
+        legend=dict(font=dict(family="'Share Tech Mono', monospace", color="#00f6ff", size=10), orientation="h", y=1.02),
         margin=dict(t=0, b=0, l=0, r=0),
         height=420,
-        font=dict(family="'Share Tech Mono', monospace", color="#e0e0e0"),
+        font=dict(family="'Share Tech Mono', monospace", color="#00f6ff"),
     )
     return fig
 

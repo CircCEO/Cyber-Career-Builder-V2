@@ -2,13 +2,38 @@
 Instinct (Personality), Technical (Triage), and Deep-Scenario questions for Cyber Career Compass.
 Choices use a weighted matrix: each option contributes to multiple NIST NICE categories
 (e.g., 80% Protect and Defend, 20% Investigate).
+
+Mission-tier API (imported by main.py):
+- get_explorer_questions()  → 20 items (10 Instinct + 10 NIST Foundations)
+- get_specialist_questions() → 50 items (5 Instinct + 10 Technical + 16 Deep + 19 TKS)
+- get_operator_questions()  → 12 items (mission scenarios)
+All question text is sourced from cyber_career_compass.translations.
 """
+
+# Public API: mission-tier functions first for clean importing
+__all__ = [
+    "get_explorer_questions",
+    "get_specialist_questions",
+    "get_operator_questions",
+    "Question",
+    "Choice",
+    "get_instinct_questions",
+    "get_technical_questions",
+    "get_deep_scenario_questions",
+    "get_personality_scenarios_questions",
+    "get_operator_question_branch",
+    "get_explorer_instinct_questions",
+    "get_explorer_foundations_questions",
+    "get_specialist_tks_questions",
+    "get_all_questions_for_flow",
+    "shuffle_choices_for_display",
+]
 
 import random
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Any, Union, Tuple
 
-from nice_framework import (
+from cyber_career_compass.nice_framework import (
     CATEGORY_SP,
     CATEGORY_PR,
     CATEGORY_AN,
@@ -600,7 +625,7 @@ CANONICAL_OPERATOR_WEIGHTS: List[List[Dict[str, float]]] = [
 
 def get_specialist_tks_questions(lang: Optional[str] = None) -> List[Question]:
     """19 TKS gap questions for Specialist path (2026 NIST)."""
-    from translations import get_specialist_tks_texts
+    from cyber_career_compass.translations import get_specialist_tks_texts
     l = lang or "en"
     texts = get_specialist_tks_texts(l)
     out: List[Question] = []
@@ -612,7 +637,8 @@ def get_specialist_tks_questions(lang: Optional[str] = None) -> List[Question]:
 
 
 def get_specialist_questions(lang: Optional[str] = None) -> List[Question]:
-    """50 questions for Specialist path: 5 Instinct + 10 Technical + 16 Deep + 19 TKS."""
+    """50 questions for Specialist path: 5 Instinct + 10 Technical + 16 Deep + 19 TKS.
+    Explicitly defined and exported for main.py mission hub."""
     return (
         get_instinct_questions(lang)
         + get_technical_questions(lang)
@@ -622,8 +648,9 @@ def get_specialist_questions(lang: Optional[str] = None) -> List[Question]:
 
 
 def get_operator_questions(lang: Optional[str] = None) -> List[Question]:
-    """12 mission scenario questions for Operator path (2026 AI/Supply Chain). Linear order; use get_operator_question_branch for branching."""
-    from translations import get_operator_texts
+    """12 mission scenario questions for Operator path (2026 AI/Supply Chain).
+    Explicitly defined and exported for main.py mission hub. Linear order; use get_operator_question_branch for branching."""
+    from cyber_career_compass.translations import get_operator_texts
     l = lang or "en"
     texts = get_operator_texts(l)
     out: List[Question] = []
@@ -636,7 +663,7 @@ def get_operator_questions(lang: Optional[str] = None) -> List[Question]:
 
 def get_operator_question_branch(lang: Optional[str], index: int, choice_history: List[int]) -> Optional[Question]:
     """Return Operator question at index; for index 1 and 2 use branch variant from prior choice (decision tree)."""
-    from translations import get_operator_texts_branch
+    from cyber_career_compass.translations import get_operator_texts_branch
     l = lang or "en"
     prior = choice_history[index - 1] if index > 0 and index <= len(choice_history) else None
     if index in (1, 2):
@@ -653,7 +680,7 @@ def get_instinct_questions(lang: Optional[str] = None) -> List[Question]:
     """Return Instinct questions; text from translations if lang given, else built-in EN."""
     if lang is None:
         return INSTINCT_QUESTIONS
-    from translations import get_instinct_texts
+    from cyber_career_compass.translations import get_instinct_texts
     texts = get_instinct_texts(lang)
     out: List[Question] = []
     for i, t in enumerate(texts):
@@ -672,7 +699,7 @@ def get_technical_questions(lang: Optional[str] = None) -> List[Question]:
     """Return Technical questions; text from translations if lang given."""
     if lang is None:
         return TECHNICAL_QUESTIONS
-    from translations import get_technical_texts
+    from cyber_career_compass.translations import get_technical_texts
     texts = get_technical_texts(lang)
     out = []
     for i, t in enumerate(texts):
@@ -686,7 +713,7 @@ def get_deep_scenario_questions(lang: Optional[str] = None) -> List[Question]:
     """Return 16 Deep Scenario questions (5 trend + 10 NIST + 1 regional, e.g. METI for JA)."""
     if lang is None:
         return DEEP_SCENARIO_QUESTIONS
-    from translations import get_deep_texts
+    from cyber_career_compass.translations import get_deep_texts
     texts = get_deep_texts(lang)
     out = []
     for i, t in enumerate(texts):
@@ -697,14 +724,10 @@ def get_deep_scenario_questions(lang: Optional[str] = None) -> List[Question]:
 
 
 def get_explorer_instinct_questions(lang: Optional[str] = None) -> List[Question]:
-    """10 Instinct questions for Explorer path (5 base + 5 extra)."""
-    if lang is None:
-        from translations import get_explorer_instinct_texts
-        lang = "en"
-        texts = get_explorer_instinct_texts(lang)
-    else:
-        from translations import get_explorer_instinct_texts
-        texts = get_explorer_instinct_texts(lang)
+    """10 Instinct questions for Explorer path (5 base + 5 extra). Text from cyber_career_compass.translations."""
+    from cyber_career_compass.translations import get_explorer_instinct_texts
+    l = lang or "en"
+    texts = get_explorer_instinct_texts(l)
     out: List[Question] = []
     for i, t in enumerate(texts):
         weights = CANONICAL_EXPLORER_INSTINCT_WEIGHTS[i] if i < len(CANONICAL_EXPLORER_INSTINCT_WEIGHTS) else CANONICAL_EXPLORER_INSTINCT_WEIGHTS[0]
@@ -714,13 +737,18 @@ def get_explorer_instinct_questions(lang: Optional[str] = None) -> List[Question
 
 
 def get_explorer_foundations_questions(lang: Optional[str] = None) -> List[Question]:
-    """10 NIST Foundations questions for Explorer path (same as Technical)."""
+    """10 NIST Foundations questions for Explorer path (same content as Technical; text from cyber_career_compass.translations when lang set)."""
     return get_technical_questions(lang)
 
 
 def get_explorer_questions(lang: Optional[str] = None) -> List[Question]:
-    """20 questions for Explorer path: 10 Instinct + 10 NIST Foundations."""
-    return get_explorer_instinct_questions(lang) + get_explorer_foundations_questions(lang)
+    """Return exactly 20 foundational NIST questions: 10 Instinct + 10 NIST Foundations.
+    Explicitly defined and exported for main.py mission hub. All text via cyber_career_compass.translations."""
+    instinct = get_explorer_instinct_questions(lang)
+    foundations = get_explorer_foundations_questions(lang)
+    result = instinct + foundations
+    assert len(result) == 20, f"Explorer path must be 20 questions, got {len(result)}"
+    return result
 
 
 def get_all_questions_for_flow(lang: Optional[str] = None) -> List[Question]:
