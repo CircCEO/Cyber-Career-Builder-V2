@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+pycache/
+.DS_Store
+.streamlit/secrets.toml
